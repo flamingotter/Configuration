@@ -8,3 +8,16 @@ services:
       - /etc/localtime:/etc/localtime:ro
     restart: always
     network_mode: host
+  mqtt:
+    container_name: MQTT
+    image: eclipse-mosquitto
+    volumes:
+      - /srv/docker/mosquitto/config:/mosquitto/config
+      - /srv/docker/mosquitto/log:/mosquitto/log
+      - /srv/docker/mosquitto/data:/mosquitto/data
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+  
