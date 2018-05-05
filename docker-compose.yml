@@ -1,13 +1,5 @@
 version: '3'
 services:
-  homeassistant:
-    container_name: home-assistant
-    image: homeassistant/home-assistant
-    volumes:
-      - /srv/docker/ha-config:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: always
-    network_mode: host
   mqtt:
     container_name: MQTT
     image: eclipse-mosquitto
