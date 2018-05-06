@@ -4,7 +4,7 @@ services:
     container_name: home-assistant
     image: homeassistant/home-assistant
     volumes:
-      - /srv/docker/ha-config:/config
+      - /docker/ha-config:/config
       - /etc/localtime:/etc/localtime:ro
     restart: always
     network_mode: host
