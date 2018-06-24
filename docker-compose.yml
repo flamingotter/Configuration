@@ -1,10 +1,12 @@
 version: '3'
 services:
-  homeassistant:
-    container_name: ha
-    image: homeassistant/home-assistant
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto
     volumes:
-      - /docker/ha-config:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: always
-    network_mode: host
+      - /opt/docker/mosquitto/config:/mosquitto/config:ro
+      - /opt/docker/mosquitto/log:/mosquitto/log
+      - /opt/docker/mosquitto/data/:/mosquitto/data/
+    restart: on-failure
+    ports:
+      - "1883:1883"
