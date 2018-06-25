@@ -1,12 +1,52 @@
 version: '3'
 services:
+  influxdb:
+      container_name: influxdb
+      environment:
+        - INFLUXDB_DB=homeassistant
+        - INFLUXDB_ADMIN_USER=admin
+        - INFLUXDB_ADMIN_PASSWORD=password123
+        - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
+      image: influxdb
+      volumes:
+        - /opt/docker/influxdb:/var/lib/influxdb
+        - /etc/localtime:/etc/localtime:ro
+      restart: on-failure
+      ports:
+        - 8086:8086
+
   mqtt:
     container_name: mqtt
-    image: eclipse-mosquitto
+    image: toke/mosquitto
     volumes:
-      - /opt/docker/mosquitto/config:/mosquitto/config:ro
-      - /opt/docker/mosquitto/log:/mosquitto/log
-      - /opt/docker/mosquitto/data/:/mosquitto/data/
+      - /opt/docker/mqtt/config:/mqtt/config:ro
+      - /opt/docker/mqtt/log:/mqtt/log
+      - /opt/docker/mqtt/data:/mqtt/data
     restart: on-failure
     ports:
       - "1883:1883"
+
+  homeassistant:
+    container_name: ha
+    image: homeassistant/home-assistant
+    volumes:
+      - /opt/docker/hass:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: on-failure
+    depends_on:
+      - influxdb
+      - mqtt
+    network_mode: host
+    ports:
+      - 8123:8123
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    volumes:
+      - /opt/docker/grafana:/var/lib/grafana:ro
+    restart: on-failure
+    depends_on:
+      - influxdb
+    ports:
+      - 3000:3000
