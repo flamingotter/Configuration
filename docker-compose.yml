@@ -15,38 +15,4 @@ services:
     ports:
       - 8086:8086
 
-  mqtt:
-    container_name: mqtt
-    image: toke/mosquitto
-    volumes:
-      - /opt/docker/mqtt/config:/mqtt/config:ro
-      - /opt/docker/mqtt/log:/mqtt/log
-      - /opt/docker/mqtt/data:/mqtt/data
-    restart: on-failure
-    ports:
-      - "1883:1883"
-
-  homeassistant:
-    container_name: ha
-    image: homeassistant/home-assistant
-    volumes:
-      - /opt/docker/hass:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: on-failure
-    depends_on:
-      - influxdb
-      - mqtt
-    network_mode: host
-    ports:
-      - 8123:8123
-
-  grafana:
-    container_name: grafana
-    image: grafana/grafana
-    volumes:
-      - /opt/docker/grafana:/var/lib/grafana:ro
-    restart: on-failure
-    depends_on:
-      - influxdb
-    ports:
-      - 3000:3000
+  
