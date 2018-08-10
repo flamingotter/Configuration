@@ -1,0 +1,2 @@
+msg.payload = { data: {'message': msg.data.new_state.attributes.description } };
+return msg;
