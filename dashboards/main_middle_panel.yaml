@@ -1,0 +1,17 @@
+mediaplayer:
+    widget_type: media_player
+    entity: media_player.kodi_living_room
+
+media:
+    widget_type: navigate
+    title: Media
+    url: http://10.0.10.10:5050
+
+layout:
+    - empty: 120
+    - spacer(20x1), media(120x120)
+    - empty: 140
+    - spacer(20x1), light.corner_lamp(120x120), spacer(20x1), light.corner_lamp(120x120), spacer(20x1), group.living_room_lamps(120x120), spacer(20x1), group.living_room(120x120), spacer(20x1), mediaplayer(260x260)
+    - empty: 140
+    - spacer(20x1), device_tracker.flamingotter_mqtt_josh(120x120), spacer(20x1), device_tracker.flamingotter_mqtt_mj(120x120), spacer(20x1), sensor.dark_sky_temperature(120x120), spacer(20x1), sensor.dark_sky_icon(120x120)
+    - empty: 136
