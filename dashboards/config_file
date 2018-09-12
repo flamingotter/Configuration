@@ -1,4 +1,4 @@
-sudo mkdir -p /opt/docker/appdeamon/conf/custom_css/blur1/img
+sudo mkdir -p /opt/docker/appdaemon/conf/custom_css/blur1/img
 
 sudo wget https://raw.githubusercontent.com/flamingotter/configs/master/dashboards/tablet_background2.jpg -P /opt/docker/appdeamon/conf/custom_css/blur1/img
 
