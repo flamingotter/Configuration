@@ -1,0 +1,29 @@
+if (msg.topic == "light.dining_light")
+{
+    flow.set("light_dining_light", msg.data);
+}
+
+elif (msg.topic == "light.dinner_light")
+{
+    flow.set("light_dinner_light", msg.data);
+}
+
+
+//flow.set("light_under_bed",msg.data);
+return msg;
+
+/////////////////////////////////////////////////////////////////////////////
+
+var flow_data = flow.get("light_dining_light");
+
+msg.payload = {
+    "domain":"light",
+    "service":"turn_" + flow_data["state"],
+    "data": {
+        "entity_id":"light.dining_light",
+        "brightness":flow_data.attributes["brightness"],
+        "rgb_color":flow_data.attributes["rgb_color"],
+        "color_temp":flow_data.attributes["color_temp"]
+    }
+}
+return msg;
