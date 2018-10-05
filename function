@@ -1,4 +1,0 @@
-msg.payload = { data: {'message': msg.data.new_state.attributes.description } };
-return msg;
-
-https://www.reddit.com/r/homeassistant/comments/8ebp9z/node_red_help_conditions_based_on_entity_state/
