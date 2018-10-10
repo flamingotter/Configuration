@@ -33,6 +33,12 @@ if(homeStatus!="Disarmed")
     else if(joshStatus==="Home" && mjStatus==="Home")
         return {payload: "Disarmed"};
     
+    else if(joshStatus==="Away" && mjStatus==="Home")
+        return {payload: "Disarmed"};
+    
+    else if(joshStatus==="Home" && mjStatus==="Away")
+        return {payload: "Disarmed"};
+    
     
 }
 
