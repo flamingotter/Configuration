@@ -1,0 +1,88 @@
+if (msg.topic == "input_select.josh_status")
+{
+    global.set("j", msg.payload);
+}
+
+if (msg.topic == "input_select.mj_status")
+{
+    global.set("m", msg.payload);
+}
+
+if (msg.topic == "input_select.home_status")
+{
+    global.set("h", msg.payload);
+}
+
+
+var joshStatus=global.get("j");
+var mjStatus=global.get("m");
+var homeStatus=global.get("h");
+
+//////////////
+//DISARMED
+//////////////
+
+if(homeStatus!="Disarmed")
+{
+    if(joshStatus==="Just Arrived" && mjStatus!="Home")
+        return {payload: "Disarmed"};
+        
+    else if(mjStatus==="Just Arrived" && joshStatus!="Home")
+        return {payload: "Disarmed"};
+    
+    else if(joshStatus==="Home" && mjStatus==="Home")
+        return {payload: "Disarmed"};
+    
+    
+}
+
+//////////////
+//LOCKED DOWN
+//////////////
+
+if(homeStatus!="Locked Down")
+{
+    if(joshStatus==="Away" && mjStatus==="Away")
+        return {payload: "Locked Down"};
+        
+    else if(joshStatus==="Away" && mjStatus==="Extended Away")
+        return {payload: "Locked Down"};
+    
+    else if(mjStatus==="Away" && joshStatus==="Extended Away")
+        return {payload: "Locked Down"};
+        
+    else if(joshStatus==="Just Left" && mjStatus==="Just Left")
+        return {payload: "Locked Down"};
+}
+//////////////
+//AWAY
+//////////////
+
+if(homeStatus==="Locked Down")
+{
+    if(joshStatus==="Extended Away" && mjStatus==="Extended Away")
+        return {payload: "Away"};
+}
+
+//////////////
+//SLEEPING
+//////////////
+
+
+if(joshStatus==="Sleeping" && mjStatus!="Sleeping")
+    return {payload: "Sleeping"};
+    
+else if(joshStatus!="Sleeping" && mjStatus==="Sleeping")
+    return {payload: "Sleeping"};
+        
+else if(joshStatus==="Sleeping" && mjStatus==="Extended Away")
+    return {payload: "Sleeping"};
+    
+else if(mjStatus==="Sleeping" && joshStatus==="Extended Away")
+    return {payload: "Sleeping"};
+        
+else if(joshStatus==="Sleeping" && mjStatus==="Away")
+    return {payload: "Sleeping"};
+    
+else if(mjStatus==="Sleeping" && joshStatus==="Away")
+    return {payload: "Sleeping"};
