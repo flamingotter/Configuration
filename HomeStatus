@@ -1,15 +1,15 @@
 if (msg.topic == "input_select.josh_status")
-    global.set("j", msg.payload);
+    global.set("joshStatus", msg.payload);
 
 if (msg.topic == "input_select.mj_status")
-    global.set("m", msg.payload);
+    global.set("mjStatus", msg.payload);
 
 if (msg.topic == "input_select.home_status")
-    global.set("h", msg.payload);
+    global.set("homeStatus", msg.payload);
 
-var joshStatus=global.get("j");
-var mjStatus=global.get("m");
-var homeStatus=global.get("h");
+var joshStatus=global.get("joshStatus");
+var mjStatus=global.get("mjStatus");
+var homeStatus=global.get("homeStatus");
 
 //////////////
 //DISARMED
@@ -18,14 +18,28 @@ var homeStatus=global.get("h");
 if(homeStatus!="Disarmed")
 {
     if(joshStatus==="Just Arrived")
+        {
         if(mjStatus==="Away" || mjStatus==="Extended Away" || mjStatus==="Work")
         return {payload: "Disarmed"};
+        }
+        
     else if(mjStatus==="Just Arrived")
+        {
         if(joshStatus==="Away" || joshStatus==="Extended Away" || joshStatus==="Work")
         return {payload: "Disarmed"};
+        }
+        
     else if(joshStatus==="Just Arrived" && mjStatus==="Just Arrived")
+        {
         if(homeStatus!="Disarmed")
         return {payload: "Disarmed"};
+        }
+        
+    else if(joshStatus==="Home" && mjStatus==="Home")
+        {
+        if(homeStatus!="Disarmed")
+        return {payload: "Disarmed"};
+        }
 }
 
 //////////////
