@@ -40,6 +40,18 @@ services:
     ports:
       - 8123:8123
 
+  homeassistant_dev:
+    container_name: ha_dev
+    image: homeassistant/home-assistant
+    volumes:
+      - /opt/docker/hass_dev:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: on-failure
+    depends_on:
+      - mqtt
+    ports:
+      - 8124:8124
+
   grafana:
     container_name: grafana
     image: grafana/grafana
