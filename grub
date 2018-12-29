@@ -1,0 +1,12 @@
+--- /etc/default/grub root.root 0644 2018-12-29 11:27:39
++++ /tmp/grub.S7ASbPai7M root.root 0644 2018-12-29 12:52:51
+@@ -4,8 +4,7 @@
+ # info -f grub -n 'Simple configuration'
+ 
+ GRUB_DEFAULT=0
+-GRUB_HIDDEN_TIMEOUT=0
+-GRUB_HIDDEN_TIMEOUT_QUIET=true
++GRUB_TIMEOUT_STYLE=hidden
+ GRUB_TIMEOUT=10
+ GRUB_DISTRIBUTOR=`lsb_release -i -s 2> /dev/null || echo Debian`
+ GRUB_CMDLINE_LINUX_DEFAULT="quiet splash nomodeset nouveau.modeset=0"
