@@ -1,65 +1,188 @@
-#version: '3'
+version: '3.2'
+#Environmental variables set in /etc/environment
+
+volumes:
+  portainer_data:
+  ovpn_data:
+
+networks:
+  t1_proxy:
+    external:
+      name: t1_proxy
+  default:
+    driver: bridge
+
 services:
-  influxdb:
-    container_name: influxdb
+  ddclient:
+    image: linuxserver/ddclient
+    container_name: ddclient
     environment:
-      - INFLUXDB_DB=homeassistant
-      - INFLUXDB_ADMIN_USER=admin
-      - INFLUXDB_ADMIN_PASSWORD=password123
-      - INFLUXDB_CONFIG_PATH=/etc/influxdb/influxdb.conf
-    image: influxdb
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     volumes:
-      - /opt/docker/influxdb:/var/lib/influxdb
-      - /etc/localtime:/etc/localtime:ro
-    restart: on-failure
+      - ${DOCKERDIR}ddclient/config:/config
+    restart: unless-stopped
+
+  nodered:
+    container_name: nodered
+    image: nodered/node-red
     ports:
-      - 8086:8086
+      - "1880:1880"
+    volumes:
+      - ${DOCKERDIR}nodered:/data
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
+    environment:
+      - TZ=${TZ}
+    networks:
+      - t1_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=nodered"
+      - "traefik.frontend.rule=Host:nodered.${DOMAINNAME}"  
+      # - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /nodered"
+      - "traefik.port=1880"
+      - "traefik.docker.network=t1_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      # - "traefik.frontend.headers.frameDeny: true" #customFrameOptionsValue overrides this
+      - "traefik.frontend.headers.customFrameOptionsValue: allow-from https:${DOMAINNAME}"
+      - "traefik.frontend.auth.basic.users=httpadmin:$$apr1$$ESjykpzJ$$itv3sKAATbfwo92DThEsc0"
 
   mqtt:
     container_name: mqtt
     image: toke/mosquitto
     volumes:
-      - /opt/docker/mqtt/config:/mqtt/config:ro
-      - /opt/docker/mqtt/log:/mqtt/log
-      - /opt/docker/mqtt/data:/mqtt/data
-    restart: on-failure
+      - ${DOCKERDIR}mqtt/config:/mqtt/config:ro
+      - ${DOCKERDIR}mqtt/log:/mqtt/log
+      - ${DOCKERDIR}mqtt/data:/mqtt/data
+      - /etc/localtime:/etc/localtime:ro
+    restart: always
     ports:
       - "1883:1883"
+    environment:
+      - TZ=${TZ}
 
   homeassistant:
     container_name: ha
-    image: homeassistant/home-assistant
-    volumes:
-      - /opt/docker/hass:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: on-failure
+    restart: always
     depends_on:
-      - influxdb
       - mqtt
+    image: homeassistant/home-assistant
+    devices:
+      - /dev/ttyACM0
+    volumes:
+      - ${DOCKERDIR}hass:/config
+      - /home/josh/.ssh:/.ssh
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8123:8123"
+    privileged: true
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
     network_mode: host
+  
+  
+  portainer:
+    container_name: portainer
+    image: portainer/portainer
     ports:
-      - 8123:8123
-
-  homeassistant_dev:
-    container_name: ha_dev
-    image: homeassistant/home-assistant
+      - "9000:9000"
+    command: -H unix:///var/run/docker.sock
     volumes:
-      - /opt/docker/hass_dev:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
       - /etc/localtime:/etc/localtime:ro
-    restart: on-failure
-    depends_on:
-      - mqtt
-    ports:
-      - 8124:8124
+    restart: always
+    environment:
+      - TZ=${TZ}
+    networks:
+      - t1_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=portainer"
+      - "traefik.frontend.rule=Host:portainer.${DOMAINNAME}"  
+#      - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /portainer"
+      - "traefik.port=9000"
+      - "traefik.docker.network=t1_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+#      - "traefik.frontend.headers.frameDeny: true" #customFrameOptionsValue overrides this
+      - "traefik.frontend.headers.customFrameOptionsValue: allow-from https:${DOMAINNAME}"
 
-  grafana:
-    container_name: grafana
-    image: grafana/grafana
+  openvpn:
+    cap_add:
+     - NET_ADMIN
+    image: kylemanna/openvpn
+    container_name: openvpn
+    ports:
+     - "1194:1194/udp"
+    restart: always
     volumes:
-      - /opt/docker/grafana:/var/lib/grafana:ro
-    restart: on-failure
-    depends_on:
-      - influxdb
-    ports:
-      - 3000:3000
+     - ovpn_data:/etc/openvpn
 
+  traefik:
+    image: "traefik:v1.7.16"
+    container_name: "traefik"
+    restart: always
+    domainname: ${DOMAINNAME}
+    networks:
+      - default
+      - t1_proxy 
+    environment:
+      - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+      - CF_API_KEY=${CLOUDFLARE_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=traefik"
+      - "traefik.frontend.rule=Host:traefik.${DOMAINNAME}"  
+      # - "traefik.frontend.rule=Host:${DOMAINNAME}; PathPrefixStrip: /traefik"
+      - "traefik.port=8080"
+      - "traefik.docker.network=t1_proxy"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSSeconds=315360000"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.contentTypeNosniff=true"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.SSLHost=example.com"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSPreload=true"
+      # - "traefik.frontend.headers.frameDeny: true" #customFrameOptionsValue overrides this
+      - "traefik.frontend.headers.customFrameOptionsValue: allow-from https:${DOMAINNAME}"
+      - "traefik.frontend.auth.basic.users=httpadmin:$$apr1$$ESjykpzJ$$itv3sKAATbfwo92DThEsc0"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - ${DOCKERDIR}traefik:/etc/traefik
+      - ${DOCKERDIR}shared:/shared
+
+  # grocy:
+  #   image: linuxserver/grocy
+  #   container_name: grocy
+  #   environment:
+  #     - PUID=1000
+  #     - PGID=1000
+  #     - TZ=America/Chicago
+  #   volumes:
+  #     - ${DOCKERDIR}grocy:/config
+  #   ports:
+  #     - "9283:80"
+  #   restart: unless-stopped
